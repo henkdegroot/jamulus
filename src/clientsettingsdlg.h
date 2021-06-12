@@ -66,7 +66,6 @@ protected:
     void    UpdateJitterBufferFrame();
     void    UpdateSoundCardFrame();
     void    UpdateCustomCentralServerComboBox();
-    void    UpdateAudioFaderSlider();
     QString GenSndCrdBufferDelayString ( const int iFrameSize, const QString strAddText = "" );
 
     virtual void showEvent ( QShowEvent* );
@@ -77,6 +76,7 @@ protected:
     QButtonGroup     SndCrdBufferDelayButtonGroup;
 
 public slots:
+    void UpdateAudioFaderSlider();
     void OnTimerStatus() { UpdateDisplay(); }
     void OnNetBufValueChanged ( int value );
     void OnNetBufServerValueChanged ( int value );
@@ -106,6 +106,7 @@ public slots:
     void OnTabChanged();
     void OnMakeTabChange ( int iTabIdx );
     void OnAudioPanValueChanged ( int value );
+    void SetSliderAudioPan ( int value );
 
 signals:
     void GUIDesignChanged();
@@ -113,4 +114,5 @@ signals:
     void AudioChannelsChanged();
     void CustomCentralServerAddrChanged();
     void NumMixerPanelRowsChanged ( int value );
+    void PanFaderChanged();
 };

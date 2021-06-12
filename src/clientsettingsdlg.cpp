@@ -1142,6 +1142,7 @@ void CClientSettingsDlg::UpdateAudioFaderSlider()
             lblAudioPanValue->setText ( tr ( "R" ) + " -" + QString().setNum ( AUD_FADER_IN_MIDDLE - iCurAudInFader ) );
         }
     }
+    emit PanFaderChanged();
 }
 
 void CClientSettingsDlg::OnAudioPanValueChanged ( int value )
@@ -1149,3 +1150,5 @@ void CClientSettingsDlg::OnAudioPanValueChanged ( int value )
     pClient->SetAudioInFader ( value );
     UpdateAudioFaderSlider();
 }
+
+void CClientSettingsDlg::SetSliderAudioPan ( int value ) { sldAudioPan->setValue ( value ); }

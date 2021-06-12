@@ -125,6 +125,8 @@ protected:
     CAnalyzerConsole   AnalyzerConsole;
 
 public slots:
+    void ButtonUpdate();
+
     void OnConnectDisconBut();
     void OnTimerSigMet();
     void OnTimerBuffersLED();
@@ -170,6 +172,11 @@ public slots:
     void OnSettingsStateChanged ( int value );
     void OnChatStateChanged ( int value );
     void OnLocalMuteStateChanged ( int value );
+
+    void OnLocalMuteButtonClicked() { chbLocalMute->setChecked ( false ); }
+    void OnButtonPanSelLClicked() { ClientSettingsDlg.SetSliderAudioPan ( AUD_FADER_IN_MIN ); }
+    void OnButtonPanSelCClicked() { ClientSettingsDlg.SetSliderAudioPan ( AUD_FADER_IN_MIDDLE ); }
+    void OnButtonPanSelRClicked() { ClientSettingsDlg.SetSliderAudioPan ( AUD_FADER_IN_MAX ); }
 
     void OnAudioReverbValueChanged ( int value ) { pClient->SetReverbLevel ( value ); }
 
