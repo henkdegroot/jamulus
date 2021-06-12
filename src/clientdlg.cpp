@@ -263,10 +263,22 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     lblGlobalInfoLabel->setStyleSheet ( ".QLabel { background: red; }" );
     lblGlobalInfoLabel->hide();
 
+    // prepare Mute Myself push button (invisible by default)
+    butGlobalInfoButton->hide();
+
+    // setup shortcut for Left, Center, Right and Mute button only NumPad numbers accepted
+    chbLocalMute->setShortcut ( Qt::Key_0 + Qt::KeypadModifier );
+    butPanSelL->setShortcut ( Qt::Key_1 + Qt::KeypadModifier );
+    butPanSelC->setShortcut ( Qt::Key_2 + Qt::KeypadModifier );
+    butPanSelR->setShortcut ( Qt::Key_3 + Qt::KeypadModifier );
+
     // prepare update check info label (invisible by default)
     lblUpdateCheck->setOpenExternalLinks ( true ); // enables opening a web browser if one clicks on a html link
     lblUpdateCheck->setText ( "<font color=\"red\"><b>" + APP_UPGRADE_AVAILABLE_MSG_TEXT.arg ( APP_NAME ).arg ( VERSION ) + "</b></font>" );
     lblUpdateCheck->hide();
+
+    // init buttons, based on saved settings
+    ButtonUpdate();
 
     // setup timers
     TimerCheckAudioDeviceOk.setSingleShot ( true ); // only check once after connection
@@ -443,6 +455,14 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     // push buttons
     QObject::connect ( butConnect, &QPushButton::clicked, this, &CClientDlg::OnConnectDisconBut );
 
+    QObject::connect ( butGlobalInfoButton, &QPushButton::clicked, this, &CClientDlg::OnLocalMuteButtonClicked );
+
+    QObject::connect ( butPanSelL, &QPushButton::clicked, this, &CClientDlg::OnButtonPanSelLClicked );
+
+    QObject::connect ( butPanSelC, &QPushButton::clicked, this, &CClientDlg::OnButtonPanSelCClicked );
+
+    QObject::connect ( butPanSelR, &QPushButton::clicked, this, &CClientDlg::OnButtonPanSelRClicked );
+
     // check boxes
     QObject::connect ( chbSettings, &QCheckBox::stateChanged, this, &CClientDlg::OnSettingsStateChanged );
 
@@ -538,6 +558,8 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     QObject::connect ( &ChatDlg, &CChatDlg::NewLocalInputText, this, &CClientDlg::OnNewLocalInputText );
 
     QObject::connect ( &ConnectDlg, &CConnectDlg::ReqServerListQuery, this, &CClientDlg::OnReqServerListQuery );
+
+    QObject::connect ( &ClientSettingsDlg, &CClientSettingsDlg::PanFaderChanged, this, &CClientDlg::ButtonUpdate );
 
     // note that this connection must be a queued connection, otherwise the server list ping
     // times are not accurate and the client list may not be retrieved for all servers listed
@@ -1036,10 +1058,12 @@ void CClientDlg::OnLocalMuteStateChanged ( int value )
     if ( value == Qt::Checked )
     {
         lblGlobalInfoLabel->show();
+        // butGlobalInfoButton->show();
     }
     else
     {
         lblGlobalInfoLabel->hide();
+        // butGlobalInfoButton->hide();
     }
 }
 
@@ -1354,6 +1378,16 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
             "QCheckBox {              color:          rgb(220, 220, 220);"
             "                         font:           bold; }" );
 
+        butPanSelC->setStyleSheet ( ":disabled {background-color: rgb(77, 171, 204); color: rgb(220, 220, 220); font: bold;}" );
+        butPanSelL->setStyleSheet ( ":disabled {background-color: rgb(77, 171, 204); color: rgb(220, 220, 220); font: bold;}" );
+        butPanSelR->setStyleSheet ( ":disabled {background-color: rgb(77, 171, 204); color: rgb(220, 220, 220); font: bold;}" );
+
+        butGlobalInfoButton->setStyleSheet ( "background: red;"
+                                             "border: none;"
+                                             "padding-left: 6px;"
+                                             "padding-right: 6px;"
+                                             "color: rgb(220, 220, 220);"
+                                             "font:  bold;" );
 #ifdef _WIN32
         // Workaround QT-Windows problem: This should not be necessary since in the
         // background frame the style sheet for QRadioButton was already set. But it
@@ -1372,6 +1406,14 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
     default:
         // reset style sheet and set original parameters
         backgroundFrame->setStyleSheet ( "" );
+        butGlobalInfoButton->setStyleSheet ( "background: red;"
+                                             "border: none;"
+                                             "padding-left: 6px;"
+                                             "padding-right: 6px;" );
+
+        butPanSelC->setStyleSheet ( ":disabled {background-color: rgb(196, 196, 196); color: rgb(0, 0, 0)}" );
+        butPanSelL->setStyleSheet ( ":disabled {background-color: rgb(196, 196, 196); color: rgb(0, 0, 0)}" );
+        butPanSelR->setStyleSheet ( ":disabled {background-color: rgb(196, 196, 196); color: rgb(0, 0, 0)}" );
 
 #ifdef _WIN32
         // Workaround QT-Windows problem: See above description
@@ -1492,4 +1534,40 @@ void CClientDlg::SetPingTime ( const int iPingTime, const int iOverallDelayMs, c
 
     // set current LED status
     ledDelay->SetLight ( eOverallDelayLEDColor );
+}
+
+void CClientDlg::ButtonUpdate()
+{
+    int value = pClient->GetAudioInFader();
+
+    switch ( value )
+    {
+    case AUD_FADER_IN_MIDDLE:
+        // level is C so disable Center button, enable L and R
+        butPanSelL->setEnabled ( true );
+        butPanSelC->setEnabled ( false );
+        butPanSelR->setEnabled ( true );
+        break;
+
+    case AUD_FADER_IN_MIN:
+        // right channel only
+        butPanSelL->setEnabled ( false );
+        butPanSelC->setEnabled ( true );
+        butPanSelR->setEnabled ( true );
+        break;
+
+    case AUD_FADER_IN_MAX:
+        // left channel oonly
+        butPanSelL->setEnabled ( true );
+        butPanSelC->setEnabled ( true );
+        butPanSelR->setEnabled ( false );
+        break;
+
+    default:
+        // not L, C or R so enable all buttons
+        butPanSelL->setEnabled ( true );
+        butPanSelC->setEnabled ( true );
+        butPanSelR->setEnabled ( true );
+        break;
+    }
 }

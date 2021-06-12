@@ -66,7 +66,6 @@ protected:
     void    UpdateJitterBufferFrame();
     void    UpdateSoundCardFrame();
     void    UpdateDirectoryServerComboBox();
-    void    UpdateAudioFaderSlider();
     QString GenSndCrdBufferDelayString ( const int iFrameSize, const QString strAddText = "" );
 
     virtual void showEvent ( QShowEvent* );
@@ -77,6 +76,7 @@ protected:
     QButtonGroup     SndCrdBufferDelayButtonGroup;
 
 public slots:
+    void UpdateAudioFaderSlider();
     void OnTimerStatus() { UpdateDisplay(); }
     void OnNetBufValueChanged ( int value );
     void OnNetBufServerValueChanged ( int value );
@@ -105,6 +105,7 @@ public slots:
     void OnTabChanged();
     void OnMakeTabChange ( int iTabIdx );
     void OnAudioPanValueChanged ( int value );
+    void SetSliderAudioPan ( int value );
 
 #if defined( _WIN32 ) && !defined( WITH_JACK )
     // Only include this slot for Windows when JACK is NOT used
@@ -117,4 +118,5 @@ signals:
     void AudioChannelsChanged();
     void CustomDirectoriesChanged();
     void NumMixerPanelRowsChanged ( int value );
+    void PanFaderChanged();
 };
