@@ -183,9 +183,9 @@ public slots:
     void OnLocalMuteStateChanged ( int value );
 
     void OnLocalMuteButtonClicked() { chbLocalMute->setChecked ( false ); }
-    void OnButtonPanSelLClicked() { ClientSettingsDlg.SetSliderAudioPan ( AUD_FADER_IN_MIN ); }
-    void OnButtonPanSelCClicked() { ClientSettingsDlg.SetSliderAudioPan ( AUD_FADER_IN_MIDDLE ); }
-    void OnButtonPanSelRClicked() { ClientSettingsDlg.SetSliderAudioPan ( AUD_FADER_IN_MAX ); }
+
+    void OnButtonPanSelLToggled();
+    void OnButtonPanSelRToggled();
 
     void OnAudioReverbValueChanged ( int value ) { pClient->SetReverbLevel ( value ); }
 

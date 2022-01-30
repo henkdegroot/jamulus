@@ -79,8 +79,10 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     QString strInpLevHAccDescr = tr ( "Simulates an analog LED level meter." );
 
     lblInputLEDMeter->setWhatsThis ( strInpLevH );
-    lblLevelMeterLeft->setWhatsThis ( strInpLevH );
-    lblLevelMeterRight->setWhatsThis ( strInpLevH );
+    butPanSelL->setWhatsThis ( "Use this button to set the Input fader to only output Left Channel" );
+    butPanSelL->setToolTip ( "Enable this button to only output Left Channel." );
+    butPanSelR->setWhatsThis ( "Use this button to set the Input fader to only output Right Channel" );
+    butPanSelR->setToolTip ( "Enable this button to only output Right Channel." );
     lbrInputLevelL->setWhatsThis ( strInpLevH );
     lbrInputLevelL->setAccessibleName ( strInpLevHAccText );
     lbrInputLevelL->setAccessibleDescription ( strInpLevHAccDescr );
@@ -263,13 +265,9 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     lblGlobalInfoLabel->setStyleSheet ( ".QLabel { background: red; }" );
     lblGlobalInfoLabel->hide();
 
-    // prepare Mute Myself push button (invisible by default)
-    butGlobalInfoButton->hide();
-
     // setup shortcut for Left, Center, Right and Mute button only NumPad numbers accepted
     chbLocalMute->setShortcut ( Qt::Key_0 + Qt::KeypadModifier );
     butPanSelL->setShortcut ( Qt::Key_1 + Qt::KeypadModifier );
-    butPanSelC->setShortcut ( Qt::Key_2 + Qt::KeypadModifier );
     butPanSelR->setShortcut ( Qt::Key_3 + Qt::KeypadModifier );
 
     // prepare update check info label (invisible by default)
@@ -455,13 +453,9 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     // push buttons
     QObject::connect ( butConnect, &QPushButton::clicked, this, &CClientDlg::OnConnectDisconBut );
 
-    QObject::connect ( butGlobalInfoButton, &QPushButton::clicked, this, &CClientDlg::OnLocalMuteButtonClicked );
+    QObject::connect ( butPanSelL, &QPushButton::toggled, this, &CClientDlg::OnButtonPanSelLToggled );
 
-    QObject::connect ( butPanSelL, &QPushButton::clicked, this, &CClientDlg::OnButtonPanSelLClicked );
-
-    QObject::connect ( butPanSelC, &QPushButton::clicked, this, &CClientDlg::OnButtonPanSelCClicked );
-
-    QObject::connect ( butPanSelR, &QPushButton::clicked, this, &CClientDlg::OnButtonPanSelRClicked );
+    QObject::connect ( butPanSelR, &QPushButton::toggled, this, &CClientDlg::OnButtonPanSelRToggled );
 
     // check boxes
     QObject::connect ( chbSettings, &QCheckBox::stateChanged, this, &CClientDlg::OnSettingsStateChanged );
@@ -1058,12 +1052,10 @@ void CClientDlg::OnLocalMuteStateChanged ( int value )
     if ( value == Qt::Checked )
     {
         lblGlobalInfoLabel->show();
-        // butGlobalInfoButton->show();
     }
     else
     {
         lblGlobalInfoLabel->hide();
-        // butGlobalInfoButton->hide();
     }
 }
 
@@ -1378,16 +1370,9 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
             "QCheckBox {              color:          rgb(220, 220, 220);"
             "                         font:           bold; }" );
 
-        butPanSelC->setStyleSheet ( ":disabled {background-color: rgb(77, 171, 204); color: rgb(220, 220, 220); font: bold;}" );
-        butPanSelL->setStyleSheet ( ":disabled {background-color: rgb(77, 171, 204); color: rgb(220, 220, 220); font: bold;}" );
-        butPanSelR->setStyleSheet ( ":disabled {background-color: rgb(77, 171, 204); color: rgb(220, 220, 220); font: bold;}" );
+        butPanSelL->setStyleSheet ( ":checked {background-color: rgb(77, 171, 204); color: rgb(220, 220, 220); font: bold; border: none;}" );
+        butPanSelR->setStyleSheet ( ":checked {background-color: rgb(77, 171, 204); color: rgb(220, 220, 220); font: bold; border: none;}" );
 
-        butGlobalInfoButton->setStyleSheet ( "background: red;"
-                                             "border: none;"
-                                             "padding-left: 6px;"
-                                             "padding-right: 6px;"
-                                             "color: rgb(220, 220, 220);"
-                                             "font:  bold;" );
 #ifdef _WIN32
         // Workaround QT-Windows problem: This should not be necessary since in the
         // background frame the style sheet for QRadioButton was already set. But it
@@ -1406,14 +1391,9 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
     default:
         // reset style sheet and set original parameters
         backgroundFrame->setStyleSheet ( "" );
-        butGlobalInfoButton->setStyleSheet ( "background: red;"
-                                             "border: none;"
-                                             "padding-left: 6px;"
-                                             "padding-right: 6px;" );
 
-        butPanSelC->setStyleSheet ( ":disabled {background-color: rgb(196, 196, 196); color: rgb(0, 0, 0)}" );
-        butPanSelL->setStyleSheet ( ":disabled {background-color: rgb(196, 196, 196); color: rgb(0, 0, 0)}" );
-        butPanSelR->setStyleSheet ( ":disabled {background-color: rgb(196, 196, 196); color: rgb(0, 0, 0)}" );
+        butPanSelL->setStyleSheet ( ":checked {background-color: rgb(196, 196, 196); color: rgb(0, 0, 0); border: none;}" );
+        butPanSelR->setStyleSheet ( ":checked {background-color: rgb(196, 196, 196); color: rgb(0, 0, 0); border: none;}" );
 
 #ifdef _WIN32
         // Workaround QT-Windows problem: See above description
@@ -1536,38 +1516,82 @@ void CClientDlg::SetPingTime ( const int iPingTime, const int iOverallDelayMs, c
     ledDelay->SetLight ( eOverallDelayLEDColor );
 }
 
+void CClientDlg::OnButtonPanSelLToggled()
+{
+    bool PanSelRChecked = butPanSelR->isChecked();
+    bool PanSelLChecked = butPanSelL->isChecked();
+
+    // When we get here and both buttons are not checked, move Fader to middle
+    if ( !PanSelRChecked && !PanSelLChecked )
+    {
+        ClientSettingsDlg.SetSliderAudioPan ( AUD_FADER_IN_MIDDLE );
+    }
+
+    // L button has been checked, so set Fader to Left and uncheck R button
+    if ( PanSelLChecked )
+    {
+        ClientSettingsDlg.SetSliderAudioPan ( AUD_FADER_IN_MIN );
+        butPanSelR->blockSignals ( true );
+        butPanSelR->setChecked ( false );
+        butPanSelR->blockSignals ( false );
+    }
+}
+
+void CClientDlg::OnButtonPanSelRToggled()
+{
+    bool PanSelRChecked = butPanSelR->isChecked();
+    bool PanSelLChecked = butPanSelL->isChecked();
+
+    // When we get here and both buttons are not checked, move Fader to middle
+    if ( !PanSelRChecked && !PanSelLChecked )
+    {
+        ClientSettingsDlg.SetSliderAudioPan ( AUD_FADER_IN_MIDDLE );
+    }
+
+    // R button has been checked, so set Fader to Right and uncheck L button
+    if ( PanSelRChecked )
+    {
+        ClientSettingsDlg.SetSliderAudioPan ( AUD_FADER_IN_MAX );
+        butPanSelL->blockSignals ( true );
+        butPanSelL->setChecked ( false );
+        butPanSelL->blockSignals ( false );
+    }
+}
+
 void CClientDlg::ButtonUpdate()
 {
     int value = pClient->GetAudioInFader();
 
     switch ( value )
     {
-    case AUD_FADER_IN_MIDDLE:
-        // level is C so disable Center button, enable L and R
-        butPanSelL->setEnabled ( true );
-        butPanSelC->setEnabled ( false );
-        butPanSelR->setEnabled ( true );
-        break;
-
     case AUD_FADER_IN_MIN:
-        // right channel only
-        butPanSelL->setEnabled ( false );
-        butPanSelC->setEnabled ( true );
-        butPanSelR->setEnabled ( true );
+        // right channel only - do not emit button signals
+        butPanSelL->blockSignals ( true );
+        butPanSelL->setChecked ( true );
+        butPanSelL->blockSignals ( false );
+        butPanSelR->blockSignals ( true );
+        butPanSelR->setChecked ( false );
+        butPanSelR->blockSignals ( false );
         break;
 
     case AUD_FADER_IN_MAX:
-        // left channel oonly
-        butPanSelL->setEnabled ( true );
-        butPanSelC->setEnabled ( true );
-        butPanSelR->setEnabled ( false );
+        // left channel only - do not emit button signals
+        butPanSelL->blockSignals ( true );
+        butPanSelL->setChecked ( false );
+        butPanSelL->blockSignals ( false );
+        butPanSelR->blockSignals ( true );
+        butPanSelR->setChecked ( true );
+        butPanSelR->blockSignals ( false );
         break;
 
     default:
-        // not L, C or R so enable all buttons
-        butPanSelL->setEnabled ( true );
-        butPanSelC->setEnabled ( true );
-        butPanSelR->setEnabled ( true );
+        // not L or R so uncheck both buttons - do not emit button signals
+        butPanSelL->blockSignals ( true );
+        butPanSelL->setChecked ( false );
+        butPanSelL->blockSignals ( false );
+        butPanSelR->blockSignals ( true );
+        butPanSelR->setChecked ( false );
+        butPanSelR->blockSignals ( false );
         break;
     }
 }
