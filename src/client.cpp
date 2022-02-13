@@ -166,6 +166,8 @@ CClient::CClient ( const quint16  iPortNumber,
 
     QObject::connect ( &Sound, &CSound::ControllerInMuteMyself, this, &CClient::OnControllerInMuteMyself );
 
+    QObject::connect ( &Sound, &CSound::ControllerInInputPanValue, this, &CClient::OnControllerInInputPanValue );
+
     QObject::connect ( &Socket, &CHighPrioSocket::InvalidPacketReceived, this, &CClient::OnInvalidPacketReceived );
 
     QObject::connect ( pSignalHandler, &CSignalHandler::HandledSignal, this, &CClient::OnHandledSignal );
@@ -715,6 +717,18 @@ void CClient::OnControllerInMuteMyself ( bool bMute )
 #endif
 
     emit ControllerInMuteMyself ( bMute );
+}
+
+void CClient::OnControllerInInputPanValue ( int iValue )
+{
+    // in case of a headless client the panners cannot be moved so we need
+    // to send the controller information directly to the server
+#ifdef HEADLESS
+    // FIXME: no idea what to do here.
+    //SetSliderAudioPan ( static_cast<float> ( iValue ) / AUD_MIX_PAN_MAX );
+#endif
+
+    emit ControllerInInputPanValue ( iValue );
 }
 
 void CClient::OnClientIDReceived ( int iChanID )

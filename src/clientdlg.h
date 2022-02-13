@@ -151,6 +151,8 @@ public slots:
 
     void OnControllerInMuteMyself ( const bool bMute ) { chbLocalMute->setChecked ( bMute ); }
 
+    void OnControllerInInputPanValue ( const int iValue ) { ClientSettingsDlg.OnAudioPanValueChanged ( iValue ); }
+
     void OnVersionAndOSReceived ( COSUtil::EOpSystemType, QString strVersion );
 
     void OnCLVersionAndOSReceived ( CHostAddress, COSUtil::EOpSystemType, QString strVersion );

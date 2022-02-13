@@ -394,6 +394,7 @@ protected slots:
     void OnControllerInFaderIsSolo ( int iChannelIdx, bool bIsSolo );
     void OnControllerInFaderIsMute ( int iChannelIdx, bool bIsMute );
     void OnControllerInMuteMyself ( bool bMute );
+    void OnControllerInInputPanValue ( int iValue );
     void OnClientIDReceived ( int iChanID );
 
 signals:
@@ -425,4 +426,5 @@ signals:
     void ControllerInFaderIsSolo ( int iChannelIdx, bool bIsSolo );
     void ControllerInFaderIsMute ( int iChannelIdx, bool bIsMute );
     void ControllerInMuteMyself ( bool bMute );
+    void ControllerInInputPanValue ( int iValue );
 };

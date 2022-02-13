@@ -33,6 +33,7 @@ char const sMidiCtlChar[] = {
     /* [EMidiCtlType::Solo]        = */ 's',
     /* [EMidiCtlType::Mute]        = */ 'm',
     /* [EMidiCtlType::MuteMyself]  = */ 'o',
+    /* [EMidiCtlType::InputPan]    = */ 'i',
     /* [EMidiCtlType::None]        = */ '\0' };
 
 /* Implementation *************************************************************/
@@ -397,6 +398,14 @@ void CSoundBase::ParseMIDIMessage ( const CVector<uint8_t>& vMIDIPaketBytes )
                         {
                             // We depend on toggles reflecting the desired state to Mute Myself
                             emit ControllerInMuteMyself ( iValue >= 0x40 );
+                        }
+                        break;
+                        case InputPan:
+                        {
+                            // Pan levels need to be symmetric between 1 and 127
+                            const int iInputPanValue = static_cast<int> ( static_cast<double> ( qMax ( iValue, 1 ) - 1 ) / 126 * AUD_MIX_PAN_MAX );
+
+                            emit ControllerInInputPanValue ( iInputPanValue );
                         }
                         break;
                         default:

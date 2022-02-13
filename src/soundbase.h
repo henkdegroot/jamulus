@@ -49,6 +49,7 @@ enum EMidiCtlType
     Solo,
     Mute,
     MuteMyself,
+    InputPan,
     None
 };
 
@@ -173,4 +174,5 @@ signals:
     void ControllerInFaderIsSolo ( int iChannelIdx, bool bIsSolo );
     void ControllerInFaderIsMute ( int iChannelIdx, bool bIsMute );
     void ControllerInMuteMyself ( bool bMute );
+    void ControllerInInputPanValue ( int iValue );
 };
